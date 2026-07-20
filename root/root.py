@@ -100,6 +100,11 @@ class MainframeMainView(ui.View):
         view = WellbeingSubsystemView(self.bot, self.author, cog, self, interaction.guild)
         await interaction.response.edit_message(embed=view.get_embed(), view=view)
 
+    @ui.button(label="Economy & Bank", style=discord.ButtonStyle.success, emoji="💰", row=2)
+    async def economy_btn(self, interaction: discord.Interaction, button: ui.Button):
+        view = EconomySubsystemView(self.bot, self.author, self)
+        await interaction.response.edit_message(embed=view.get_embed(), view=view)
+
     @ui.button(label="Exit Matrix", style=discord.ButtonStyle.danger, emoji="❌", row=2)
     async def exit_btn(self, interaction: discord.Interaction, button: ui.Button):
         for item in self.children:
@@ -512,3 +517,107 @@ class WellbeingChannelSelectMenu(ui.Select):
         self.options = []
         for ch in guild.text_channels[:25]:
             self.options.append(discord.SelectOption(label=ch.name, value=str(ch.id)))
+
+
+# =====================================================================
+#                      ECONOMY SUBSYSTEM VIEW
+# =====================================================================
+class EconomySubsystemView(ui.View):
+    def __init__(self, bot, author, parent_view):
+        super().__init__(timeout=180)
+        self.bot = bot
+        self.author = author
+        self.parent_view = parent_view
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id != self.author.id:
+            await interaction.response.send_message("❌ Unauthorized.", ephemeral=True)
+            return False
+        return True
+
+    def get_embed(self) -> discord.Embed:
+        desc = (
+            f"```ansi\n"
+            f"{GREEN}╔══════════════════════════════════════════════════════╗{RESET}\n"
+            f"{GREEN}║            💰 SERVER ECONOMY & BANK SUBSYSTEM         ║{RESET}\n"
+            f"{GREEN}╚══════════════════════════════════════════════════════╝{RESET}\n\n"
+            f" Manage default balances, paydays, and credit pools.\n"
+            f"```"
+        )
+        return discord.Embed(title="Subsystem: Economy & Bank", description=desc, color=discord.Color.green())
+
+    @ui.button(label="Set Default Balance", style=discord.ButtonStyle.primary, row=0)
+    async def set_default_bal(self, interaction: discord.Interaction, button: ui.Button):
+        modal = EconomyDefaultBalModal()
+        await interaction.response.send_modal(modal)
+
+    @ui.button(label="Set All Balances", style=discord.ButtonStyle.primary, row=0)
+    async def set_all_bal(self, interaction: discord.Interaction, button: ui.Button):
+        modal = EconomySetAllModal()
+        await interaction.response.send_modal(modal)
+
+    @ui.button(label="Configure Payday", style=discord.ButtonStyle.secondary, row=1)
+    async def config_payday(self, interaction: discord.Interaction, button: ui.Button):
+        modal = EconomyPaydayModal()
+        await interaction.response.send_modal(modal)
+
+    @ui.button(label="Main Menu", style=discord.ButtonStyle.danger, emoji="⬅️", row=2)
+    async def back(self, interaction: discord.Interaction, button: ui.Button):
+        await interaction.response.edit_message(embed=self.parent_view.get_main_embed(), view=self.parent_view)
+
+
+class EconomyDefaultBalModal(ui.Modal, title="Set Default Starting Balance"):
+    amount = ui.TextInput(label="Amount (Credits)", default="5000", placeholder="New user baseline")
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            amt = int(str(self.amount))
+            await bank.set_default_balance(interaction.guild, amt)
+            await interaction.response.send_message(f"✅ Default starting balance updated to **{amt}**.", ephemeral=True)
+        except ValueError:
+            await interaction.response.send_message("❌ Input must be a valid integer.", ephemeral=True)
+
+
+class EconomySetAllModal(ui.Modal, title="Set All Balances (Guild-Wide)"):
+    amount = ui.TextInput(label="Set Credits", default="10000", placeholder="Warning: overwrites everyone!")
+
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        try:
+            amt = int(str(self.amount))
+            guild = interaction.guild
+            count = 0
+            for member in guild.members:
+                if not member.bot:
+                    try:
+                        await bank.set_balance(member, amt)
+                        count += 1
+                    except Exception:
+                        pass
+            await interaction.followup.send(f"✅ Set bank balance to **{amt}** for {count} members successfully.", ephemeral=True)
+        except ValueError:
+            await interaction.followup.send("❌ Input must be a valid integer.", ephemeral=True)
+
+
+class EconomyPaydayModal(ui.Modal, title="Configure Payday System"):
+    credits = ui.TextInput(label="Credits per Payday", default="250", placeholder="E.g. 250")
+    seconds = ui.TextInput(label="Cooldown (Seconds)", default="86400", placeholder="E.g. 86400 (24h)")
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            c = int(str(self.credits))
+            s = int(str(self.seconds))
+            
+            # Access the built-in Economy cog's config directly
+            eco_conf = Config.get_conf(None, identifier=2707284898, cog_name="Economy")
+            await eco_conf.guild(interaction.guild).payday_credits.set(c)
+            await eco_conf.guild(interaction.guild).payday_time.set(s)
+            
+            await interaction.response.send_message(
+                f"✅ Payday system updated!\n"
+                f"💰 Payday: **{c} credits**\n"
+                f"⏱️ Cooldown: **{s} seconds**.",
+                ephemeral=True
+            )
+        except ValueError:
+            await interaction.response.send_message("❌ Inputs must be valid integers.", ephemeral=True)
