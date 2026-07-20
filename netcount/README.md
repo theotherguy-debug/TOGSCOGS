@@ -1,86 +1,56 @@
-# theothersequence
+# 🔢 netcount
 
-An ultimate high-stakes multi-channel sequence counting game for Red Discord Bot v3 with custom mathematical expression evaluation, cyberpunk themes, dynamic slash commands, server prestige rankings, PvP wagers, and hardcore Survivor Mode.
-
-## Features
-* **Multi-Channel Counting**: Run independent sequence counting games in different channels on the same server.
-* **Math Expression Solver**: Accepts valid mathematical expressions (e.g. `2+2`, `12/3`, `5^2`) and evaluates them to determine if they match the next index.
-* **Highest Progression Leaderboard**: Tracks users by the highest number they have successfully counted (rather than total counts).
-* **Save Shields**: Protects your streak from breaking when a wrong number is submitted. Saves can be toggled on/off and priced separately per channel.
-* **Economy Integration**: Optionally allow members to buy saves for a channel using their Red bank credits.
-* **Cyberpunk Overlays**: Dynamic cyberpunk alerts, warning nodes, and system messages when games are won, saved, or lost.
-* **Anti-Cheat Defenses**: Editing or deleting counted messages instantly triggers a game over event.
-* **PvP Counting Duels (Speed Arenas)**: Challenge other players to wager-based counting shootouts in temporary threads. Features a 5-second response limit per turn and automated pot settlement.
-* **Hardcore Survivor Mode**: Extreme stakes channels with no save shields, entry licensing/skill gates, season exiles, containment lockout roles, bank bankruptcy penalties, and milestone jackpot splits.
-* **Startup Catch-Up Resync**: Automatically reads channel history when booting online, catching up on counts sent while the bot was offline and retroactively handling errors.
+The ultimate sequence counting game built for Redbot. It includes wager duels, standard channel counting, and extreme Hardcore Survivor nodes.
 
 ---
 
-## Commands & Slash Options
+## Rules & How to Play
 
-Every command is a **hybrid command** (works as standard prefix commands like `[p]counting` or as slash commands like `/counting`).
+### 1. Standard Counting Channel
+- **Goal**: Work as a team to count up from `1` sequentially (`1`, `2`, `3`...).
+- **Rule**: You **cannot** count twice in a row. Someone else must input the next number.
+- **Wagers**: If enabled, players can spend credits to purchase save tokens to protect the streak.
 
-### Member / Public Commands
-* `/countlb` (Aliases: `clb`, `scoreboard`): View the highest sequence progression leaderboard.
-* `/buysave [channel]` (Aliases: `bs`): Purchase a save token for a specific channel using server currency.
-* `/buysurvivorlicense` (Aliases: `buysurv`): Purchase a lifetime license to type in Survivor-enabled channels.
-* `/cduel challenge <opponent> <wager>`: Initiate a counting duel shootout with another player.
-* `/cduel accept`: Accept a pending counting duel challenge (deducts wager immediately).
-* `/cduel decline`: Reject a pending counting duel challenge.
-* `/cduel status`: View all active duels running on the server.
+### 2. PvP Duels (`[p]cduel`)
+- **Stakes**: Challenge another user to a live sequence-counting speed battle for server credits!
+- **Gameplay**:
+  - Once the duel is accepted, the system opens a temporary thread arena.
+  - The **5-second turn timer** starts only after the first count (the number 1) is typed.
+  - Players must type the next sequence number within their 5-second turn window.
+  - If a player inputs a wrong number, types twice in a row, or lets the timer hit `0`, they fail and the opponent wins the credit wager!
 
-### Admin Commands (Group `/counting` or `[p]counting`)
-* `/counting addchannel <channel>` (Aliases: `addc`, `enable`): Activate the sequence game on a channel.
-* `/counting removechannel <channel>` (Aliases: `removec`, `delchannel`, `disable`): Deactivate the sequence game on a channel.
-* `/counting togglesaves <toggle> [channel]` (Aliases: `togglesave`, `ts`): Enable or disable saves for a specific channel.
-* `/counting addsave <amount> [channel]` (Aliases: `givesave`, `as`): Manually add saves to a channel.
-* `/counting addmilestone <number> <value> [channel]` (Aliases: `addm`, `setmilestone`): Map a number to a web image/GIF URL or a Discord Sticker ID.
-* `/counting viewmilestones [channel]` (Aliases: `viewm`, `milestones`, `showmilestones`): Show all milestones configured in a channel.
-* `/counting removemilestone <number> [channel]` (Aliases: `removem`, `delmilestone`): Remove a milestone from a channel.
-* `/counting setcount <count> [channel]` (Aliases: `setc`, `setvalue`, `override`): Manually realign a channel's current count index.
-* `/counting prestigetarget <target> [channel]` (Aliases: `ptarget`, `pt`): Set the number required to prestige.
-* `/counting prestige [channel]` (Aliases: `ascend`, `p`): Reset the sequence and increase the channel's Prestige rank when the target is reached.
-* `/counting economy <toggle> [channel]` (Aliases: `toggleeconomy`, `eco`): Toggle credit purchases of saves in a channel.
-* `/counting saveprice <price> [channel]` (Aliases: `setprice`, `price`): Adjust the credit price of save tokens.
-* `/counting penaltyname <name>` (Aliases: `pname`, `setpenaltyname`): Change the nickname applied to members who break the streak (Server-Wide).
-* `/counting duration <hours>` (Aliases: `pduration`, `setduration`): Set the duration in hours that the nickname penalty lasts (Server-Wide).
-
-### Admin Survivor Commands (Group `/counting survivor`)
-* `/counting survivor addchannel <channel>`: Enable Survivor mode rules on a channel (bypasses saves entirely).
-* `/counting survivor removechannel <channel>`: Revert a channel to standard counting rules.
-* `/counting survivor setbankruptcy <percent>`: Customize the credit fine bankruptcy percentage on failure (default `50`).
-* `/counting survivor setcontainment <hours>`: Set the mute duration in hours on failure (default `24`).
-* `/counting survivor setexile <hours>`: Set the season exile ban duration in hours on failure (default `168`).
-* `/counting survivor setfee <credits>`: Set the credit cost to buy a Survivor License (default `5000`).
-* `/counting survivor setmincounts <counts>`: Set the minimum highest progression level required to enter (default `100`).
-* `/counting survivor setrole <role>`: Assign a containment/mute role given to failing players.
-* `/counting survivor config`: View all active Survivor configurations and jackpot status.
+### 3. Hardcore Survivor Mode
+- **Stakes**: Extremely high-stakes counting node designed for advanced operators.
+- **Entry Gate**: Requires a minimum regular sequence contribution score and a purchased lifetime **Survivor License** (default: `5,000` credits).
+- **Rules**:
+  - **No Saves**: Save tokens cannot be used here. One mistake resets the streak to 0.
+  - **Exile & Containment**: The player who makes a mistake is shamed with a custom nickname, stripped of their access roles, and exiled from the channel for `168 hours` (7 days).
+  - **Bankruptcy**: The failing player is fined `50%` of their entire credit balance, which is split as a jackpot among the players who contributed to the current streak.
 
 ---
 
-## Game Formats
+## Player Commands
 
-### PvP Counting Duels
-1. **Accepting a Duel** spawns a public thread `⚡-duel-PlayerA-vs-PlayerB` and locks wagers in place.
-2. Players must count up sequentially (**1, 2, 3...**) taking alternating turns.
-3. **Turn timer limit is 5.0 seconds**.
-4. Double counting, wrong numbers, or timing out results in an instant defeat.
-5. The victor receives the combined pot minus a **5% server tax**.
-6. The thread is cleaned up and deleted 10 seconds post-match.
+### ⚔️ PvP Counting Duels (`cduel` group)
+*   **`[p]cduel challenge <member> [wager]`** — Challenges a player to a live sequence battle with an optional credit wager.
+*   **`[p]cduel accept`** — Accepts a pending duel challenge (opens thread, deducts wagers).
+*   **`[p]cduel decline`** — Rejects a pending duel challenge.
+*   **`[p]cduel status`** — Displays active duels on the server.
 
-### Hardcore Survivor Channels
-1. **Saves are ignored**; one error resets the channel and triggers penalties.
-2. Breaking the streak results in:
-   * **Credit Bankruptcy**: Deducts a customizable percentage of your wallet and puts it into the Jackpot Vault.
-   * **Containment**: Monospace shamed name change and containment mute role applied.
-   * **Exile**: Temp-banned from typing in the Survivor channel for a season duration.
-3. Successfully reaching a milestone split-payout distributes the accumulated **Jackpot Vault** to active streak contributors proportionally.
+### 🛡️ Shields & Licenses
+*   **`[p]buysave [channel]`** (Alias: `[p]bs`) — Purchases a backup save token for a channel.
+*   **`[p]buysurvivorlicense`** (Alias: `[p]buysurv`) — Purchases a lifetime license to access Survivor channels.
+
+### 🏆 Scores & Leaderboards
+*   **`[p]countlb`** (Aliases: `[p]clb`, `[p]scoreboard`) — Displays the top 10 players on the server.
 
 ---
 
-## Installation
-Copy the cog folder to your custom cogs directory and load it:
-```bash
-[p]cog load theothersequence
-```
-*(Make sure to sync slash commands with Discord: `[p]slash sync`)*
+## Administrator Commands
+Require **Manage Guild** permissions.
+
+*   **`[p]counting addchannel <channel>`** — Enable sequence counting in a channel.
+*   **`[p]counting removechannel <channel>`** — Disable counting and wipe channel logs.
+*   **`[p]counting setcount <number> [channel]`** — Manually override/set the current count.
+*   **`[p]counting survivor`** — Sub-command group to configure Survivor Mode (fees, bankruptcy %, exile times).
+*   **`[p]root`** (or `/root`) — Opens the Mainframe Admin Dashboard to configure everything via buttons.

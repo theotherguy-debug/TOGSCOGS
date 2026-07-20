@@ -1,27 +1,28 @@
-# WellBeing Reminders
+# 🏥 vital
 
-A Red-DiscordBot utility that sends cheekily hostile, terminal-themed well-being reminders to designated channels at randomized intervals. The alerts automatically delete after a specified period to avoid cluttering chat history.
+A utility that sends cheekily hostile, terminal-themed well-being reminders to designated channels at randomized intervals. The alerts automatically delete after a specified period to keep channels clean.
+
+---
 
 ## Features
+- **Variable Broadcast Loop**: Alerts are sent on a random timer (e.g. every 3 to 6 hours) to prevent predictable spam.
+- **Terminal Aesthetics**: Reminders are formatted with simulated "System Compromise" ASCII boxes warning about dehydration, poor posture, screen staring, or lack of hygiene.
+- **Self-Deleting Warnings**: Dispatched alerts automatically delete themselves after 24 hours.
+- **Configurable Alerts**: Combines built-in messages, external `alerts.json` lists, and custom server-specific alerts.
 
--   **Variable Broadcast Loop**: Reminders are sent out on a random timer configured within minimum and maximum boundaries (e.g., every 3 to 6 hours).
--   **Terminal Aesthetics**: Well-being warnings are formatted with simulated "System Compromise" ASCII structures warning about dehydration, poor posture, screen staring, or lack of hygiene.
--   **Auto-Cleanup**: Dispatched reminders automatically delete themselves (by default after 24 hours) to prevent channels from becoming clogged.
--   **Configurable Alert Pool**: Combines built-in hardcoded messages, external JSON alerts (`alerts.json`), and custom server-specific alerts.
+---
 
-## Commands
+## Player Commands
+*No player-level command interface registered. Wellbeing loops are managed globally by administrators.*
 
-Require **Administrator** permissions or the **Manage Guild** permission.
+---
 
-*   `[p]system` (Alias: `[p]sys`)
-    *   `addchannel`: Adds the current text channel to the broadcast list.
-    *   `interval <min_hours> <max_hours>`: Sets the minimum and maximum random intervals (in hours) between alerts.
-    *   `addalert <text>`: Adds a custom well-being alert string to the rotation.
-    *   `removealert <index>`: Removes a custom alert from rotation by its index.
-    *   `test`: Immediately broadcasts a random well-being reminder to the current channel which self-deletes after 5 minutes.
+## Administrator Commands
+Require **Manage Guild** or **Administrator** permissions.
 
-## Under the Hood
-
--   **Interval Scheduling**: Updates the reminder loop dynamically when changing wait ranges by modifying `reminder_loop.change_interval()`.
--   **Config Registry**: Stores whitelisted target broadcast channels, custom alert texts, and min/max wait durations using Red's global `Config` schema.
--   **Auto-Deletion**: Spawns non-blocking tasks (`delete_after()`) to handle message deletion without stalling the core event queue.
+*   **`[p]system addchannel`** — Adds the current channel to wellbeing alert broadcasts.
+*   **`[p]system removechannel`** — Removes the current channel from broadcasts.
+*   **`[p]system interval <min_hours> <max_hours>`** — Sets random broadcast timer boundaries.
+*   **`[p]system addalert <text>`** — Appends a custom text alert.
+*   **`[p]system test`** — Instantly triggers a test reminder in the channel (self-deletes in 5 minutes).
+*   **`[p]root`** (or `/root`) — Configure wellbeing channels and broadcast intervals via the Mainframe dashboard.
