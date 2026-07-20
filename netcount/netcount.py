@@ -1578,7 +1578,7 @@ class NetCount(commands.Cog):
                                 f"[SYS] Matrix resynchronized. Caught up {diff} numbers.\n"
                                 f"[SYS] Current Index: {int(updated_count)}\n"
                                 f"```",
-                                delete_after=15
+                                delete_after=600
                             )
                         except Exception:
                             pass
