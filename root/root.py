@@ -120,7 +120,7 @@ class MainframeMainView(ui.View):
 # =====================================================================
 class CountingSubsystemView(ui.View):
     def __init__(self, bot, author, cog, parent_view, guild):
-        super().__init__(timeout=180)
+        super().__init__(timeout=300)
         self.bot = bot
         self.author = author
         self.cog = cog
@@ -187,12 +187,73 @@ class CountingSubsystemView(ui.View):
                 msg = f"Enabled Survivor rules on <#{ch_str}> (Saves disabled, extreme stakes active)."
         await interaction.response.send_message(f"💀 {msg}", ephemeral=True)
 
-    @ui.button(label="Set Rules (Fee/Bankrupt %)", style=discord.ButtonStyle.secondary, row=2)
+    @ui.button(label="Toggle Saves", style=discord.ButtonStyle.secondary, row=1)
+    async def toggle_saves(self, interaction: discord.Interaction, button: ui.Button):
+        if not self.selected_channel_id:
+            return await interaction.response.send_message("❌ Please select a channel first.", ephemeral=True)
+        guild = interaction.guild
+        ch_str = str(self.selected_channel_id)
+        async with self.cog.config.guild(guild).channels() as channels:
+            if ch_str not in channels:
+                return await interaction.response.send_message("❌ Channel is not active in counting.", ephemeral=True)
+            current = channels[ch_str].get("saves_enabled", True)
+            channels[ch_str]["saves_enabled"] = not current
+            status = "ENABLED" if not current else "DISABLED"
+        await interaction.response.send_message(f"🛡️ Saves set to **{status}** in <#{ch_str}>.", ephemeral=True)
+
+    @ui.button(label="Toggle Economy", style=discord.ButtonStyle.secondary, row=1)
+    async def toggle_eco(self, interaction: discord.Interaction, button: ui.Button):
+        if not self.selected_channel_id:
+            return await interaction.response.send_message("❌ Please select a channel first.", ephemeral=True)
+        guild = interaction.guild
+        ch_str = str(self.selected_channel_id)
+        async with self.cog.config.guild(guild).channels() as channels:
+            if ch_str not in channels:
+                return await interaction.response.send_message("❌ Channel is not active in counting.", ephemeral=True)
+            current = channels[ch_str].get("use_economy", False)
+            channels[ch_str]["use_economy"] = not current
+            status = "ONLINE" if not current else "OFFLINE"
+        await interaction.response.send_message(f"💰 Economy set to **{status}** in <#{ch_str}>.", ephemeral=True)
+
+    @ui.button(label="Set Current Count", style=discord.ButtonStyle.secondary, row=2)
+    async def set_count_btn(self, interaction: discord.Interaction, button: ui.Button):
+        if not self.selected_channel_id:
+            return await interaction.response.send_message("❌ Please select a channel first.", ephemeral=True)
+        modal = CountingSetCountModal(self.cog, self.selected_channel_id, interaction.guild)
+        await interaction.response.send_modal(modal)
+
+    @ui.button(label="Give Save Token", style=discord.ButtonStyle.secondary, row=2)
+    async def give_save_btn(self, interaction: discord.Interaction, button: ui.Button):
+        if not self.selected_channel_id:
+            return await interaction.response.send_message("❌ Please select a channel first.", ephemeral=True)
+        modal = CountingGiveSaveModal(self.cog, self.selected_channel_id, interaction.guild)
+        await interaction.response.send_modal(modal)
+
+    @ui.button(label="Set Save Price", style=discord.ButtonStyle.secondary, row=2)
+    async def set_save_price_btn(self, interaction: discord.Interaction, button: ui.Button):
+        if not self.selected_channel_id:
+            return await interaction.response.send_message("❌ Please select a channel first.", ephemeral=True)
+        modal = CountingSavePriceModal(self.cog, self.selected_channel_id, interaction.guild)
+        await interaction.response.send_modal(modal)
+
+    @ui.button(label="Set Prestige Target", style=discord.ButtonStyle.secondary, row=2)
+    async def prestige_btn(self, interaction: discord.Interaction, button: ui.Button):
+        if not self.selected_channel_id:
+            return await interaction.response.send_message("❌ Please select a channel first.", ephemeral=True)
+        modal = CountingPrestigeTargetModal(self.cog, self.selected_channel_id, interaction.guild)
+        await interaction.response.send_modal(modal)
+
+    @ui.button(label="Survivor Rules", style=discord.ButtonStyle.secondary, row=3)
     async def set_rules(self, interaction: discord.Interaction, button: ui.Button):
         modal = CountingRulesModal(self.cog, interaction.guild)
         await interaction.response.send_modal(modal)
 
-    @ui.button(label="Main Menu", style=discord.ButtonStyle.danger, emoji="⬅️", row=2)
+    @ui.button(label="Global Shaming", style=discord.ButtonStyle.secondary, row=3)
+    async def set_shame(self, interaction: discord.Interaction, button: ui.Button):
+        modal = CountingShameModal(self.cog, interaction.guild)
+        await interaction.response.send_modal(modal)
+
+    @ui.button(label="Main Menu", style=discord.ButtonStyle.danger, emoji="⬅️", row=3)
     async def back(self, interaction: discord.Interaction, button: ui.Button):
         await interaction.response.edit_message(embed=self.parent_view.get_main_embed(), view=self.parent_view)
 
@@ -237,6 +298,117 @@ class CountingRulesModal(ui.Modal, title="Configure Counting Settings"):
             await interaction.response.send_message("❌ Failed: Inputs must be integers.", ephemeral=True)
 
 
+class CountingShameModal(ui.Modal, title="Configure Global Shaming"):
+    tag = ui.TextInput(label="Shame Nickname Tag", default="[SHAMED]", placeholder="E.g. [SHAMED]")
+    duration = ui.TextInput(label="Lockout Duration (Hours)", default="24", placeholder="Mute/shame lock duration")
+
+    def __init__(self, cog, guild):
+        super().__init__()
+        self.cog = cog
+        self.guild = guild
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            d = int(str(self.duration))
+            await self.cog.config.guild(self.guild).penalty_name.set(str(self.tag))
+            await self.cog.config.guild(self.guild).penalty_duration_hours.set(d)
+            await interaction.response.send_message("✅ Global shaming tags updated.", ephemeral=True)
+        except ValueError:
+            await interaction.response.send_message("❌ Input must be a valid integer.", ephemeral=True)
+
+
+class CountingSetCountModal(ui.Modal, title="Set Channel Count"):
+    count = ui.TextInput(label="New Count Value", default="0", placeholder="Integer value")
+
+    def __init__(self, cog, channel_id, guild):
+        super().__init__()
+        self.cog = cog
+        self.channel_id = str(channel_id)
+        self.guild = guild
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            val = int(str(self.count))
+            async with self.cog.config.guild(self.guild).channels() as channels:
+                if self.channel_id not in channels:
+                    return await interaction.response.send_message("❌ Selected channel is not an active counting channel.", ephemeral=True)
+                channels[self.channel_id]["current_count"] = val
+                channels[self.channel_id]["last_counter_id"] = None
+            
+            await interaction.response.send_message(
+                f"🛠️ **Buffer Realigned:** Count in <#{self.channel_id}> set to **{val}**. Listening for **{val + 1}**.",
+                ephemeral=True
+            )
+        except ValueError:
+            await interaction.response.send_message("❌ Input must be a valid integer.", ephemeral=True)
+
+
+class CountingGiveSaveModal(ui.Modal, title="Give Save Tokens"):
+    saves = ui.TextInput(label="Amount of Saves to Add", default="1", placeholder="Integer amount")
+
+    def __init__(self, cog, channel_id, guild):
+        super().__init__()
+        self.cog = cog
+        self.channel_id = str(channel_id)
+        self.guild = guild
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            val = int(str(self.saves))
+            async with self.cog.config.guild(self.guild).channels() as channels:
+                if self.channel_id not in channels:
+                    return await interaction.response.send_message("❌ Channel is not active in counting.", ephemeral=True)
+                channels[self.channel_id]["saves"] = channels[self.channel_id].get("saves", 0) + val
+                new_saves = channels[self.channel_id]["saves"]
+            await interaction.response.send_message(f"✅ Shield Recharged: Added {val} saves to <#{self.channel_id}>. Current saves: **{new_saves}**.", ephemeral=True)
+        except ValueError:
+            await interaction.response.send_message("❌ Input must be a valid integer.", ephemeral=True)
+
+
+class CountingSavePriceModal(ui.Modal, title="Set Save Token Cost"):
+    price = ui.TextInput(label="Credit Price per Save", default="5000", placeholder="Credit price")
+
+    def __init__(self, cog, channel_id, guild):
+        super().__init__()
+        self.cog = cog
+        self.channel_id = str(channel_id)
+        self.guild = guild
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            val = int(str(self.price))
+            async with self.cog.config.guild(self.guild).channels() as channels:
+                if self.channel_id not in channels:
+                    return await interaction.response.send_message("❌ Channel is not active in counting.", ephemeral=True)
+                channels[self.channel_id]["save_price"] = val
+            await interaction.response.send_message(f"✅ Save price in <#{self.channel_id}> updated to **{val}**.", ephemeral=True)
+        except ValueError:
+            await interaction.response.send_message("❌ Input must be a valid integer.", ephemeral=True)
+
+
+class CountingPrestigeTargetModal(ui.Modal, title="Set Prestige Target"):
+    target = ui.TextInput(label="Prestige Count Goal", default="1000", placeholder="Must be at least 100")
+
+    def __init__(self, cog, channel_id, guild):
+        super().__init__()
+        self.cog = cog
+        self.channel_id = str(channel_id)
+        self.guild = guild
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            val = int(str(self.target))
+            if val < 100:
+                return await interaction.response.send_message("❌ Target must be at least 100.", ephemeral=True)
+            async with self.cog.config.guild(self.guild).channels() as channels:
+                if self.channel_id not in channels:
+                    return await interaction.response.send_message("❌ Channel is not active in counting.", ephemeral=True)
+                channels[self.channel_id]["prestige_target"] = val
+            await interaction.response.send_message(f"🎯 Prestige target in <#{self.channel_id}> locked at **{val}**.", ephemeral=True)
+        except ValueError:
+            await interaction.response.send_message("❌ Input must be a valid integer.", ephemeral=True)
+
+
 # =====================================================================
 #                      NICKNAME SUBSYSTEM VIEW
 # =====================================================================
@@ -267,7 +439,32 @@ class NicknameSubsystemView(ui.View):
         )
         return discord.Embed(title="Subsystem: Nicknames", description=desc, color=discord.Color.green())
 
-    @ui.button(label="Reset All Nicknames", style=discord.ButtonStyle.primary, row=1)
+    @ui.button(label="Toggle Auto-Format", style=discord.ButtonStyle.primary, row=1)
+    async def toggle_join(self, interaction: discord.Interaction, button: ui.Button):
+        current = await self.cog.config.guild(interaction.guild).enabled()
+        await self.cog.config.guild(interaction.guild).enabled.set(not current)
+        status = "ENABLED" if not current else "DISABLED"
+        await interaction.response.send_message(f"✅ Join auto-formatting is now **{status}**.", ephemeral=True)
+
+    @ui.button(label="Format All Members", style=discord.ButtonStyle.secondary, row=1)
+    async def format_all(self, interaction: discord.Interaction, button: ui.Button):
+        await interaction.response.defer(ephemeral=True)
+        guild = interaction.guild
+        count = 0
+        for m in guild.members:
+            if m.bot:
+                continue
+            success = await self.cog._format_and_set_nickname(m)
+            if success:
+                count += 1
+        await interaction.followup.send(f"✅ Nicknames formatted: **{count}** members.", ephemeral=True)
+
+    @ui.button(label="Format Specific User", style=discord.ButtonStyle.secondary, row=1)
+    async def format_user(self, interaction: discord.Interaction, button: ui.Button):
+        modal = NicknameFormatUserModal(self.cog)
+        await interaction.response.send_modal(modal)
+
+    @ui.button(label="Reset All Nicknames", style=discord.ButtonStyle.danger, row=2)
     async def reset_all(self, interaction: discord.Interaction, button: ui.Button):
         await interaction.response.defer(ephemeral=True)
         guild = interaction.guild
@@ -308,6 +505,33 @@ class ThemeSelectMenu(ui.Select):
         guild = interaction.guild
         await self.parent_view.cog.config.guild(guild).theme.set(theme)
         await interaction.response.send_message(f"✅ Theme updated to **{theme}** server-wide.", ephemeral=True)
+
+
+class NicknameFormatUserModal(ui.Modal, title="Format Specific User"):
+    uid = ui.TextInput(label="User ID or Username", placeholder="E.g. 1234567890")
+
+    def __init__(self, cog):
+        super().__init__()
+        self.cog = cog
+
+    async def on_submit(self, interaction: discord.Interaction):
+        guild = interaction.guild
+        target = None
+        input_str = str(self.uid)
+        
+        if input_str.isdigit():
+            target = guild.get_member(int(input_str))
+        else:
+            target = discord.utils.find(lambda m: m.name == input_str or m.display_name == input_str, guild.members)
+            
+        if not target:
+            return await interaction.response.send_message("❌ User not found in server.", ephemeral=True)
+            
+        success = await self.cog._format_and_set_nickname(target)
+        if success:
+            await interaction.response.send_message(f"✅ Successfully formatted nickname for {target.mention}.", ephemeral=True)
+        else:
+            await interaction.response.send_message("❌ Failed: permissions error or hierarchy block.", ephemeral=True)
 
 
 # =====================================================================
@@ -354,7 +578,7 @@ class HackingSubsystemView(ui.View):
 # =====================================================================
 class AutoCleanSubsystemView(ui.View):
     def __init__(self, bot, author, cog, parent_view, guild):
-        super().__init__(timeout=180)
+        super().__init__(timeout=300)
         self.bot = bot
         self.author = author
         self.cog = cog
@@ -396,12 +620,36 @@ class AutoCleanSubsystemView(ui.View):
         status = "ENABLED" if not current else "DISABLED"
         await interaction.response.send_message(f"🧹 AutoClean live purge in <#{channel.id}> set to **{status}**.", ephemeral=True)
 
-    @ui.button(label="Set Purge Delay", style=discord.ButtonStyle.secondary, row=1)
+    @ui.button(label="Set Deletion Delay", style=discord.ButtonStyle.secondary, row=1)
     async def set_delay(self, interaction: discord.Interaction, button: ui.Button):
         if not self.selected_channel_id:
             return await interaction.response.send_message("❌ Please select a channel first.", ephemeral=True)
         channel = self.bot.get_channel(int(self.selected_channel_id))
         modal = AutoCleanDelayModal(self.cog, channel)
+        await interaction.response.send_modal(modal)
+
+    @ui.button(label="Purge Messages Now", style=discord.ButtonStyle.danger, row=1)
+    async def purge_now(self, interaction: discord.Interaction, button: ui.Button):
+        if not self.selected_channel_id:
+            return await interaction.response.send_message("❌ Please select a channel first.", ephemeral=True)
+        channel = self.bot.get_channel(int(self.selected_channel_id))
+        modal = AutoCleanPurgeModal(self.cog, channel)
+        await interaction.response.send_modal(modal)
+
+    @ui.button(label="Whitelist User", style=discord.ButtonStyle.secondary, row=2)
+    async def ignore_user(self, interaction: discord.Interaction, button: ui.Button):
+        if not self.selected_channel_id:
+            return await interaction.response.send_message("❌ Please select a channel first.", ephemeral=True)
+        channel = self.bot.get_channel(int(self.selected_channel_id))
+        modal = AutoCleanIgnoreUserModal(self.cog, channel)
+        await interaction.response.send_modal(modal)
+
+    @ui.button(label="Whitelist Role", style=discord.ButtonStyle.secondary, row=2)
+    async def ignore_role(self, interaction: discord.Interaction, button: ui.Button):
+        if not self.selected_channel_id:
+            return await interaction.response.send_message("❌ Please select a channel first.", ephemeral=True)
+        channel = self.bot.get_channel(int(self.selected_channel_id))
+        modal = AutoCleanIgnoreRoleModal(self.cog, channel)
         await interaction.response.send_modal(modal)
 
     @ui.button(label="Main Menu", style=discord.ButtonStyle.danger, emoji="⬅️", row=2)
@@ -439,6 +687,88 @@ class AutoCleanDelayModal(ui.Modal, title="Configure AutoClean Delay"):
             await interaction.response.send_message(f"✅ Delay updated to **{d} seconds** for <#{self.channel.id}>.", ephemeral=True)
         except ValueError:
             await interaction.response.send_message("❌ Input must be a valid integer.", ephemeral=True)
+
+
+class AutoCleanPurgeModal(ui.Modal, title="Purge Messages Now"):
+    amount = ui.TextInput(label="Amount (Max 2000)", default="100", placeholder="Messages to wipe")
+
+    def __init__(self, cog, channel):
+        super().__init__()
+        self.cog = cog
+        self.channel = channel
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            amt = int(str(self.amount))
+            if not (1 <= amt <= 2000):
+                return await interaction.response.send_message("❌ Amount must be between 1 and 2000.", ephemeral=True)
+            await interaction.response.defer(ephemeral=True)
+            purged = await self.channel.purge(limit=amt)
+            await interaction.followup.send(f"🧹 Purged **{len(purged)}** messages successfully.", ephemeral=True)
+        except ValueError:
+            await interaction.response.send_message("❌ Input must be a valid integer.", ephemeral=True)
+
+
+class AutoCleanIgnoreUserModal(ui.Modal, title="Whitelist User"):
+    uid = ui.TextInput(label="User ID or Username", placeholder="E.g. 1234567890")
+
+    def __init__(self, cog, channel):
+        super().__init__()
+        self.cog = cog
+        self.channel = channel
+
+    async def on_submit(self, interaction: discord.Interaction):
+        guild = interaction.guild
+        target = None
+        input_str = str(self.uid)
+        
+        if input_str.isdigit():
+            target = guild.get_member(int(input_str))
+        else:
+            target = discord.utils.find(lambda m: m.name == input_str or m.display_name == input_str, guild.members)
+            
+        if not target:
+            return await interaction.response.send_message("❌ User not found in server.", ephemeral=True)
+            
+        async with self.cog.config.channel(self.channel).ignored_users() as ignored:
+            if target.id in ignored:
+                ignored.remove(target.id)
+                msg = f"Removed {target.mention} from AutoClean whitelist."
+            else:
+                ignored.append(target.id)
+                msg = f"Added {target.mention} to AutoClean whitelist."
+        await interaction.response.send_message(f"✅ {msg}", ephemeral=True)
+
+
+class AutoCleanIgnoreRoleModal(ui.Modal, title="Whitelist Role"):
+    role = ui.TextInput(label="Role ID or Name", placeholder="E.g. Administrator")
+
+    def __init__(self, cog, channel):
+        super().__init__()
+        self.cog = cog
+        self.channel = channel
+
+    async def on_submit(self, interaction: discord.Interaction):
+        guild = interaction.guild
+        target = None
+        input_str = str(self.role)
+        
+        if input_str.isdigit():
+            target = guild.get_role(int(input_str))
+        else:
+            target = discord.utils.find(lambda r: r.name == input_str, guild.roles)
+            
+        if not target:
+            return await interaction.response.send_message("❌ Role not found in server.", ephemeral=True)
+            
+        async with self.cog.config.channel(self.channel).ignored_roles() as ignored:
+            if target.id in ignored:
+                ignored.remove(target.id)
+                msg = f"Removed role **{target.name}** from AutoClean whitelist."
+            else:
+                ignored.append(target.id)
+                msg = f"Added role **{target.name}** to AutoClean whitelist."
+        await interaction.response.send_message(f"✅ {msg}", ephemeral=True)
 
 
 # =====================================================================
@@ -499,6 +829,38 @@ class WellbeingSubsystemView(ui.View):
             channels.remove(cid)
         await interaction.response.send_message(f"✅ Removed <#{cid}> from wellbeing broadcasts.", ephemeral=True)
 
+    @ui.button(label="Set Broadcast Interval", style=discord.ButtonStyle.secondary, row=1)
+    async def set_interval(self, interaction: discord.Interaction, button: ui.Button):
+        modal = WellbeingIntervalModal(self.cog)
+        await interaction.response.send_modal(modal)
+
+    @ui.button(label="Broadcast Test Alert", style=discord.ButtonStyle.success, row=2)
+    async def test_alert(self, interaction: discord.Interaction, button: ui.Button):
+        if not self.selected_channel_id:
+            return await interaction.response.send_message("❌ Please select a channel first.", ephemeral=True)
+        channel = self.bot.get_channel(int(self.selected_channel_id))
+        if not channel:
+            return await interaction.response.send_message("❌ Channel not found.", ephemeral=True)
+            
+        await interaction.response.defer(ephemeral=True)
+        
+        # Pull random alert
+        alerts = list(self.cog.json_alerts)
+        custom_alerts = await self.cog.config.custom_alerts()
+        alerts.extend(custom_alerts)
+        
+        if not alerts:
+            return await interaction.followup.send("⚠️ No alerts configured in Vital database.", ephemeral=True)
+            
+        alert = random.choice(alerts)
+        formatted = self.cog.format_alert(alert)
+        msg = await channel.send(f"```ansi\n{formatted}\n```")
+        self.cog.recent_history.append(alert)
+        
+        # Self delete in 5 mins for tests
+        asyncio.create_task(self.cog.delete_after(msg, 300))
+        await interaction.followup.send("✅ Test alert dispatched to channel (will self-delete in 5 minutes).", ephemeral=True)
+
     @ui.button(label="Main Menu", style=discord.ButtonStyle.danger, emoji="⬅️", row=2)
     async def back(self, interaction: discord.Interaction, button: ui.Button):
         await interaction.response.edit_message(embed=self.parent_view.get_main_embed(), view=self.parent_view)
@@ -517,6 +879,27 @@ class WellbeingChannelSelectMenu(ui.Select):
         self.options = []
         for ch in guild.text_channels[:25]:
             self.options.append(discord.SelectOption(label=ch.name, value=str(ch.id)))
+
+
+class WellbeingIntervalModal(ui.Modal, title="Configure Broadcast Intervals"):
+    min_w = ui.TextInput(label="Minimum Interval (Hours)", default="3", placeholder="Min wait duration")
+    max_w = ui.TextInput(label="Maximum Interval (Hours)", default="6", placeholder="Max wait duration")
+
+    def __init__(self, cog):
+        super().__init__()
+        self.cog = cog
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            mi = int(str(self.min_w))
+            ma = int(str(self.max_w))
+            if mi >= ma:
+                return await interaction.response.send_message("❌ Minimum must be less than maximum.", ephemeral=True)
+            await self.cog.config.min_wait.set(mi)
+            await self.cog.config.max_wait.set(ma)
+            await interaction.response.send_message(f"✅ Broadcast intervals set to random between **{mi} and {ma} hours**.", ephemeral=True)
+        except ValueError:
+            await interaction.response.send_message("❌ Inputs must be valid integers.", ephemeral=True)
 
 
 # =====================================================================
