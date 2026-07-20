@@ -1,0 +1,26 @@
+{
+    "author": [
+        "Th3OTh3rGuy"
+    ],
+    "description": "Automatically cleans messages in configured channels using either real-time custom delays or periodic sweeps, plus monthly logs wiping.",
+    "end_user_data_statement": "This cog stores channel configuration, ignored users, and ignored roles.",
+    "hidden": false,
+    "install_msg": "Thank you for installing AutoClean. Use `[p]help autoclean` to get started.",
+    "min_bot_version": "3.5.0",
+    "min_python_version": [
+        3,
+        8,
+        0
+    ],
+    "name": "purge",
+    "required_cogs": {},
+    "requirements": [],
+    "short": "Real-time delay cleanup & periodic sweeping.",
+    "tags": [
+        "moderation",
+        "cleanup",
+        "automod",
+        "utility"
+    ],
+    "type": "COG"
+}

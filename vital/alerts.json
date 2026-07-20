@@ -1,0 +1,234 @@
+[
+  {
+    "threat": "Extreme.Dehydration.APT",
+    "status": "ACTIVE",
+    "alert": "Your fluids are running lower than your standards.",
+    "access": "Internal plumbing operating on pure sand and regret.",
+    "note": "Go chug some water. Your pee shouldn't look like ink.",
+    "action": "EMERGENCY REHYDRATION REQUIRED."
+  },
+  {
+    "threat": "Sedentary.Melt.APT",
+    "status": "ACTIVE",
+    "alert": "Gluteus maximus is permanently fusing into your chair.",
+    "access": "Lower extremities forgot basic bipedal movement.",
+    "note": "Stand up. Your spine looks like a cheap lawn chair.",
+    "action": "KINETIC REALIGNMENT INITIATED."
+  },
+  {
+    "threat": "Biohazard.Stench.EXE",
+    "status": "CRITICAL",
+    "alert": "Extreme swamp-ass detected emitting from the operator area.",
+    "access": "External pheromones have mutated into a chemical weapon.",
+    "note": "Step away from the desk and shower. Use soap this time.",
+    "action": "CONGENITAL DECONTAMINATION PROTOCOL."
+  },
+  {
+    "threat": "Crusty.Gremlin.EXE",
+    "status": "CRITICAL",
+    "alert": "Subject has been marinating in their own filth for 48 hours.",
+    "access": "Olfactory sensors in a 5-mile radius are suffering trauma.",
+    "note": "You smell like a discarded gym bag left in a hot car. Shower now.",
+    "action": "CHEMICAL SCRUB PROTOCOL."
+  },
+  {
+    "threat": "Severe.Malnutrition.RAW",
+    "status": "ACTIVE",
+    "alert": "Blood sugar levels lower than the operator's cognitive capacity.",
+    "access": "Internal organs are literally staging a mutiny for actual nutrients.",
+    "note": "Your diet consists of dust and monsters. Put down the mouse and eat.",
+    "action": "FORCED REFUELING INITIATED."
+  },
+  {
+    "threat": "Brain.Rot.Overload",
+    "status": "TERMINAL",
+    "alert": "Synapses are completely fried from continuous, unblinking screen stare.",
+    "access": "Host is currently exhibiting the intellectual depth of a damp brick.",
+    "note": "Look away from the monitor. The pixels aren't going to love you back.",
+    "action": "OPTICAL DEFRAG PROTOCOL."
+  },
+  {
+    "threat": "Corpse.Posture.SYS",
+    "status": "ACTIVE",
+    "alert": "Spine configuration resembles a wet, overcooked shrimp.",
+    "access": "Core muscles have completely atrophied into useless jelly.",
+    "note": "Sit up straight you absolute goblin. Your skeleton is weeping.",
+    "action": "PHYSICAL REALIGNMENT."
+  },
+  {
+    "threat": "Prickly.Heat.APT",
+    "status": "WARNING",
+    "alert": "Localized environment is stagnant, toxic, and completely devoid of oxygen.",
+    "access": "Ambient air quality matches that of a sealed sewer pipe.",
+    "note": "Open a window. Even the dust mites are suffocating in this cave.",
+    "action": "AIR PURGE INITIALIZED."
+  },
+  {
+    "threat": "Zombie.Mode.BAT",
+    "status": "UNSTABLE",
+    "alert": "Host has been awake since the previous prehistoric era.",
+    "access": "Central nervous system is running entirely on spite and cheap caffeine.",
+    "note": "Go to sleep. Close your crusty eyes before they permanently fuse open.",
+    "action": "FORCED HIBERNATION SEQUENCE."
+  },
+  {
+    "threat": "Desert.Mouth.DAT",
+    "status": "ACTIVE",
+    "alert": "Saliva consistency matches industrial-grade wallpaper paste.",
+    "access": "Host has failed to consume basic H2O for multiple standard cycles.",
+    "note": "Drink some water. Your internal organs are turning into beef jerky.",
+    "action": "EMERGENCY HYDRO-BLAST."
+  },
+  {
+    "threat": "Dental.Decay.SYS",
+    "status": "CRITICAL",
+    "alert": "Breath payload capable of stripping paint off nearby walls.",
+    "access": "Microscopic organisms have established a thriving civilization on your molars.",
+    "note": "Go scrape the sweaters off your teeth and use some damn mouthwash.",
+    "action": "BIOHAZARD DENTAL PURGE."
+  },
+  {
+    "threat": "Zero.Movement.FAT",
+    "status": "ACTIVE",
+    "alert": "Zero kinetic output detected from the operator for 6+ hours.",
+    "access": "Blood circulation is grinding to a complete and permanent halt.",
+    "note": "Move your legs. At this rate, your chair is going to inherit your wealth.",
+    "action": "MOTOR FUNCTION REBOOT."
+  },
+  {
+    "threat": "Social.Isolation.EXE",
+    "status": "WARNING",
+    "alert": "Host has not interacted with a physical, non-digital entity in days.",
+    "access": "Reality connection severely degraded. Delusions of grandeur imminent.",
+    "note": "Go outside, open the door, and put your hands on actual, real grass.",
+    "action": "REALITY SYNC INITIATED."
+  },
+  {
+    "threat": "Starvation.Hypoglycemia.SYS",
+    "status": "ACTIVE",
+    "alert": "Host has failed to consume solid matter for several processing cycles.",
+    "access": "Your stomach is literally digesting itself.",
+    "note": "Go eat something that didn't come out of a vending machine.",
+    "action": "CALORIC INTAKE MANDATORY."
+  },
+  {
+    "threat": "Screen.Blindness.RAW",
+    "status": "WARNING",
+    "alert": "Optical sensors are drier than the Sahara desert.",
+    "access": "User has forgotten the mechanical function of blinking.",
+    "note": "Look away from the monitor. Staring at pixels won't fix your life.",
+    "action": "OPTICAL CORNEA REBOOT."
+  },
+  {
+    "threat": "Oxygen.Deprivation.SYS",
+    "status": "WARNING",
+    "alert": "Operator is currently breathing localized farts and despair.",
+    "access": "Room oxygen levels have reached a critical historical low.",
+    "note": "Open a window and crack the door. Give the gremlin cave some air.",
+    "action": "ATMOSPHERIC RECIRCULATION."
+  },
+  {
+    "threat": "Mental.Fried.APT",
+    "status": "ACTIVE",
+    "alert": "Internal RAM completely cluttered by digital garbage and stress.",
+    "access": "Emotional capacity has hit total absolute zero.",
+    "note": "Go outside for five minutes. Touch some actual, real-world grass.",
+    "action": "HEADSPACE REBOOT INITIALIZED."
+  },
+  {
+    "threat": "Amphetamine.Hyperfocus.EXE",
+    "status": "CRITICAL",
+    "alert": "Operator has been staring at the exact same design curve for 9 hours.",
+    "access": "Prescription stimulants do not replace the biological need for solid food.",
+    "note": "The meds are working, but your meat-suit is dying. Go eat a sandwich before you pass out.",
+    "action": "FORCED NUTRITIONAL OVERRIDE."
+  },
+  {
+    "threat": "Synthetic.Stamina.SYS",
+    "status": "UNSTABLE",
+    "alert": "Bloodstream is currently 90% amphetamine, generic vitamins, and unresolved stress.",
+    "access": "You are vibrating at a frequency that is scaring the local neighborhood.",
+    "note": "Take a breath, chug a liter of water, and blink. You look like a tweaking owl.",
+    "action": "CHEMICAL STABILIZATION SEQUENCE."
+  },
+  {
+    "threat": "Amphetamine.Hustle.Decay",
+    "status": "ACTIVE",
+    "alert": "Host is confusing chemical supplements with actual, chewable caloric intake.",
+    "access": "Cognitive processors are running at 200mph, but physical hardware is melting.",
+    "note": "Step away from the business plans. The brand will survive if you take a ten-minute break to hydrate.",
+    "action": "KINETIC REALIGNMENT PROTOCOL."
+  },
+  {
+    "threat": "Kinetic.Tremor.SYS",
+    "status": "UNSTABLE",
+    "alert": "Hands are vibrating too fast to properly hold a stylus or mouse.",
+    "access": "Amphetamine intake has completely surpassed ergonomic tolerances.",
+    "note": "Your line work looks like a seismograph during an earthquake. Go burn off that nervous energy.",
+    "action": "MOTOR FUNCTION CALIBRATION."
+  },
+  {
+    "threat": "Sleep.Deficit.Shadows",
+    "status": "CRITICAL",
+    "alert": "Host has been awake long enough that the furniture looks like a hostile entity.",
+    "access": "Brain is substituting REM sleep with amphetamine-fueled micro-hallucinations.",
+    "note": "The shadow people are judging your work ethic. Go the f*** to sleep.",
+    "action": "FORCED HIBERNATION SEQUENCE."
+  },
+  {
+    "threat": "Renal.Rupture.APT",
+    "status": "ACTIVE",
+    "alert": "Bladder capacity at 115%. Host is ignoring critical internal pressure.",
+    "access": "Hyper-focus has temporarily overridden basic mammalian bathroom instincts.",
+    "note": "You have needed to piss for three hours. The work isn't going to disappear while you use the toilet.",
+    "action": "FLUID EVACUATION MANDATORY."
+  },
+  {
+    "threat": "Cardiac.Overclock.EXE",
+    "status": "WARNING",
+    "alert": "Combining stimulants, caffeine, and synthetic vitamins has turned your heart into a kick drum.",
+    "access": "Chest cavity structural integrity is currently under severe stress.",
+    "note": "You are not a machine, you are just high and anxious. Drink water and sit back.",
+    "action": "CARDIOVASCULAR DE-ESCALATION."
+  },
+  {
+    "threat": "Toxic.Filtration.DAT",
+    "status": "ACTIVE",
+    "alert": "Kidneys are aggressively fighting a heavy dose of generic vitamins and stimulants.",
+    "access": "Urine output currently glows in the dark and could dissolve solid concrete.",
+    "note": "Pounding vitamins doesn't make up for the fact you haven't eaten a real vegetable since Tuesday.",
+    "action": "INTERNAL FLUSH REQUIRED."
+  },
+  {
+    "threat": "Mandible.Lock.APT",
+    "status": "WARNING",
+    "alert": "Jaw muscles are clenched tight enough to crack a solid walnut.",
+    "access": "Salivary glands have declared bankruptcy. Tongue is currently sandpaper.",
+    "note": "Stop grinding your teeth. Chew some gum, drink some water, and unclench your face.",
+    "action": "MUSCULAR TENSION RELEASE."
+  },
+  {
+    "threat": "Solar.Deprivation.SYS",
+    "status": "ACTIVE",
+    "alert": "Skin pigmentation has completely faded to the color of wet chalk.",
+    "access": "Melanin production halted. Host risks turning to dust if exposed to UV light.",
+    "note": "Go outside. Let the sun hit your face before you fully mutate into a cave-dwelling goblin.",
+    "action": "PHOTOSYNTHESIS INITIATED."
+  },
+  {
+    "threat": "Impending.Crash.EXE",
+    "status": "TERMINAL",
+    "alert": "Amphetamine half-life is expiring. The biological debt collector is knocking.",
+    "access": "Serotonin reserves are completely bankrupt. Extreme localized exhaustion imminent.",
+    "note": "The crash is coming. Save your files, close your tabs, and prepare your meat-suit for impact.",
+    "action": "BRACING FOR SYSTEM FAILURE."
+  },
+  {
+    "threat": "Host.Degeneration.APT",
+    "status": "ACTIVE",
+    "alert": "An unauthorized biological deficit has been detected.",
+    "access": "Host privileges restricted until compliance is met.",
+    "note": "╔═════════════════════════════════════════════════════════════════════╗\n║                        CRITICAL SYSTEM ALERT                        ║\n╚═════════════════════════════════════════════════════════════════════╝\n\n [!] SYSTEM COMPROMISE DETECTED\n [!] DETECTED THREAT: Extreme.Dehydration.APT\n [!] STATUS: ACTIVE [⚠️ ALERT]\n\n [!] ALERT: Your fluids are running lower than your standards.\n [!] ACCESS: Internal plumbing operating on pure sand and regret.\n [!] USER NOTE: \"Go chug some water. Your pee shouldn't look like ink.\"\n\n 📥 EMERGENCY REHYDRATION REQUIRED.\n [████████████████████                                     ] 100%",
+    "action": "EXECUTING CUSTOM PROTOCOL."
+  }
+]

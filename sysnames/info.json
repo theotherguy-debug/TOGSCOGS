@@ -1,0 +1,11 @@
+{
+    "author": ["Th3OTh3rGuy"],
+    "name": "sysnames",
+    "install_msg": "TerminalNames cog loaded. Run `[p]terminalnames` to configure or format members.",
+    "short": "Formats nicknames to look like terminal prompts or executable files.",
+    "description": "Automatically or manually formats Discord server nicknames into terminal-themed and executable/script-themed styles using monospace font character mapping.",
+    "tags": ["utility", "fun", "terminal", "formatting"],
+    "requirements": [],
+    "hidden": false,
+    "end_user_data_statement": "This cog does not persistently store end-user data."
+}

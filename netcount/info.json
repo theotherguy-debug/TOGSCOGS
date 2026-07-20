@@ -1,0 +1,11 @@
+{
+    "author": ["Th3OTh3rGuy"],
+    "description": "An ultimate high-stakes multi-channel sequence counting game with cyberpunk style.",
+    "short": "High-Stakes Sequence Counting Game",
+    "tags": ["counting", "game", "cyberpunk", "sequence"],
+    "name": "netcount",
+    "requirements": [],
+    "min_bot_version": "3.5.0",
+    "hidden": false,
+    "disabled": false
+}

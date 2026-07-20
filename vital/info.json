@@ -1,0 +1,11 @@
+{
+    "author": ["Th3OTh3rGuy"],
+    "name": "vital",
+    "install_msg": "System alerts initialized. Run `[p]sys` to configure.",
+    "short": "System-style well-being reminders.",
+    "description": "Sends cheeky, terminal-style well-being reminders to designated channels on a random timer.",
+    "tags": ["utility", "reminders", "system"],
+    "requirements": [],
+    "hidden": false,
+    "end_user_data_statement": "This cog does not persistently store user data."
+}

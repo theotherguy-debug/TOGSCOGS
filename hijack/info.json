@@ -1,0 +1,10 @@
+{
+    "author": ["Th3OTh3rGuy"],
+    "name": "hijack",
+    "short": "A button-based console terminal hacking game.",
+    "description": "Allows users to interact with a button-based UI dashboard and breach other users' firewalls using discord.ui components.",
+    "tags": ["hacking", "game", "terminal", "fun", "ui", "buttons"],
+    "min_bot_version": "3.5.0",
+    "requirements": [],
+    "end_user_data_statement": "This cog stores Discord User IDs temporarily to track game session firewall integrity. This data can be deleted at any time upon user request or when the game session ends."
+}

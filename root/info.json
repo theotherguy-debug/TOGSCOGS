@@ -1,0 +1,13 @@
+{
+    "author": ["Th3OTh3rGuy"],
+    "description": "Unified Mainframe Command Center dashboard to configure all server gaming subsystems.",
+    "disabled": false,
+    "hidden": false,
+    "install_msg": "Mainframe Operator Control Panel loaded.",
+    "name": "root",
+    "required_cogs": {},
+    "requirements": [],
+    "short": "Central administrative dashboard.",
+    "tags": ["admin", "control", "panel"],
+    "type": "COG"
+}
