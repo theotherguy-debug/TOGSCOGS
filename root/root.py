@@ -105,6 +105,11 @@ class MainframeMainView(ui.View):
         view = EconomySubsystemView(self.bot, self.author, self)
         await interaction.response.edit_message(embed=view.get_embed(), view=view)
 
+    @ui.button(label="Broadcast DM", style=discord.ButtonStyle.danger, emoji="🚨", row=2)
+    async def broadcast_btn(self, interaction: discord.Interaction, button: ui.Button):
+        modal = BroadcastDMModal(self.bot)
+        await interaction.response.send_modal(modal)
+
     @ui.button(label="Exit Matrix", style=discord.ButtonStyle.danger, emoji="❌", row=2)
     async def exit_btn(self, interaction: discord.Interaction, button: ui.Button):
         for item in self.children:
@@ -852,6 +857,7 @@ class WellbeingSubsystemView(ui.View):
         if not alerts:
             return await interaction.followup.send("⚠️ No alerts configured in Vital database.", ephemeral=True)
             
+        import random
         alert = random.choice(alerts)
         formatted = self.cog.format_alert(alert)
         msg = await channel.send(f"```ansi\n{formatted}\n```")
@@ -1004,3 +1010,77 @@ class EconomyPaydayModal(ui.Modal, title="Configure Payday System"):
             )
         except ValueError:
             await interaction.response.send_message("❌ Inputs must be valid integers.", ephemeral=True)
+
+
+# =====================================================================
+#                      BROADCAST DM SYSTEM MODAL & TASK
+# =====================================================================
+class BroadcastDMModal(ui.Modal, title="Broadcast Direct Message"):
+    target = ui.TextInput(label="Target (Role name or 'all')", default="all", placeholder="Role name (case-insensitive) or 'all'")
+    msg = ui.TextInput(label="Message Content", style=discord.TextStyle.paragraph, placeholder="Type message broadcast here...")
+
+    def __init__(self, bot):
+        super().__init__()
+        self.bot = bot
+
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        guild = interaction.guild
+        target_str = str(self.target).strip()
+        msg_str = str(self.msg).strip()
+        
+        # Collect target users
+        members = []
+        if target_str.lower() == "all":
+            members = [m for m in guild.members if not m.bot]
+            group_name = "Everyone"
+        else:
+            role = discord.utils.find(lambda r: r.name.lower() == target_str.lower(), guild.roles)
+            if not role:
+                return await interaction.followup.send(f"❌ Failed: Role **{target_str}** not found.", ephemeral=True)
+            members = [m for m in role.members if not m.bot]
+            group_name = f"Role '{role.name}'"
+            
+        if not members:
+            return await interaction.followup.send(f"⚠️ Target group ({group_name}) has no active members.", ephemeral=True)
+            
+        # Spawn background task
+        asyncio.create_task(self.run_broadcast(interaction.user, members, msg_str, group_name))
+        await interaction.followup.send(
+            f"📡 **Broadcast Initiated:** Delivering message to **{len(members)}** members in group **{group_name}**.\n"
+            f"⚙️ Running in background with a 1.5s delay to prevent rate limiting. You will receive a summary DM when finished.",
+            ephemeral=True
+        )
+
+    async def run_broadcast(self, admin: discord.Member, members: list, message_text: str, group_name: str):
+        success = 0
+        failed = 0
+        
+        for m in members:
+            try:
+                # Direct Message format
+                embed = discord.Embed(
+                    title=f"🚨 Broadcast from {admin.guild.name}",
+                    description=message_text,
+                    color=discord.Color.red()
+                )
+                embed.set_footer(text=f"Sent by Server Administrator • {admin.display_name}")
+                await m.send(embed=embed)
+                success += 1
+            except (discord.Forbidden, discord.HTTPException):
+                failed += 1
+            await asyncio.sleep(1.5)  # Safe rate limit delay
+            
+        # Send summary report to admin
+        try:
+            summary = (
+                f"📊 **System DM Broadcast Summary**\n"
+                f"Guild: **{admin.guild.name}**\n"
+                f"Target: **{group_name}**\n"
+                f"Total targets: **{len(members)}**\n\n"
+                f"✅ **Sent successfully**: {success}\n"
+                f"❌ **Failed (DMs closed/blocked)**: {failed}"
+            )
+            await admin.send(summary)
+        except Exception:
+            pass
