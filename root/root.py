@@ -258,6 +258,11 @@ class CountingSubsystemView(ui.View):
         modal = CountingShameModal(self.cog, interaction.guild)
         await interaction.response.send_modal(modal)
 
+    @ui.button(label="Pardon Member", style=discord.ButtonStyle.success, emoji="🕊️", row=3)
+    async def pardon_user_btn(self, interaction: discord.Interaction, button: ui.Button):
+        modal = CountingPardonUserModal(self.cog)
+        await interaction.response.send_modal(modal)
+
     @ui.button(label="Main Menu", style=discord.ButtonStyle.danger, emoji="⬅️", row=3)
     async def back(self, interaction: discord.Interaction, button: ui.Button):
         await interaction.response.edit_message(embed=self.parent_view.get_main_embed(), view=self.parent_view)
@@ -276,6 +281,52 @@ class ChannelSelectMenu(ui.Select):
         self.options = []
         for ch in guild.text_channels[:25]:
             self.options.append(discord.SelectOption(label=ch.name, value=str(ch.id)))
+
+
+class CountingPardonUserModal(ui.Modal, title="Pardon Member Early"):
+    uid = ui.TextInput(label="User ID or Username", placeholder="E.g. 1234567890")
+
+    def __init__(self, cog):
+        super().__init__()
+        self.cog = cog
+
+    async def on_submit(self, interaction: discord.Interaction):
+        guild = interaction.guild
+        target = None
+        input_str = str(self.uid)
+        
+        if input_str.isdigit():
+            target = guild.get_member(int(input_str))
+        else:
+            target = discord.utils.find(lambda m: m.name == input_str or m.display_name == input_str, guild.members)
+            
+        if not target:
+            return await interaction.response.send_message("❌ User not found in server.", ephemeral=True)
+            
+        data = await self.cog.config.member(target).all()
+        orig_nick = data.get("original_nickname")
+        try:
+            await target.edit(nick=orig_nick, reason="Admin pardon from Mainframe.")
+        except discord.Forbidden:
+            pass
+            
+        containment_role_id = await self.cog.config.guild(guild).containment_role_id()
+        if containment_role_id:
+            role = guild.get_role(containment_role_id)
+            if role and role in target.roles:
+                try:
+                    await target.remove_roles(role, reason="Admin pardon from Mainframe.")
+                except discord.Forbidden:
+                    pass
+                    
+        await self.cog.config.member(target).penalty_end_time.clear()
+        await self.cog.config.member(target).original_nickname.clear()
+        await self.cog.config.member(target).survivor_exile_end.clear()
+        
+        await interaction.response.send_message(
+            f"✅ **PARDON GRANTED:** {target.mention} has been released from shaming containment and survivor channel exile.",
+            ephemeral=True
+        )
 
 
 class CountingRulesModal(ui.Modal, title="Configure Counting Settings"):

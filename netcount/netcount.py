@@ -848,6 +848,33 @@ class NetCount(commands.Cog):
         await self.config.guild(ctx.guild).penalty_duration_hours.set(hours)
         await ctx.send(f"[SYS] Server-Wide SHAME_CONTAINMENT_LOCK set to **{hours} hours**.")
 
+    @counting.command(name="pardon", aliases=["unshame", "unpenalize", "clearpenalty"])
+    async def pardon(self, ctx: commands.Context, member: discord.Member):
+        """Pardon a player early, removing their shamed nickname, containment role, and exile."""
+        guild = ctx.guild
+        data = await self.config.member(member).all()
+        
+        orig_nick = data.get("original_nickname")
+        try:
+            await member.edit(nick=orig_nick, reason="Admin pardon.")
+        except discord.Forbidden:
+            pass
+            
+        containment_role_id = await self.config.guild(guild).containment_role_id()
+        if containment_role_id:
+            role = guild.get_role(containment_role_id)
+            if role and role in member.roles:
+                try:
+                    await member.remove_roles(role, reason="Admin pardon.")
+                except discord.Forbidden:
+                    pass
+                    
+        await self.config.member(member).penalty_end_time.clear()
+        await self.config.member(member).original_nickname.clear()
+        await self.config.member(member).survivor_exile_end.clear()
+        
+        await ctx.send(f"✅ **PARDON GRANTED:** {member.mention} has been released from shaming containment and survivor exile.")
+
     # --- LEADERBOARD & USER COMMANDS ---
     @commands.hybrid_command(name="countlb", aliases=["clb", "scoreboard"])
     async def countlb(self, ctx: commands.Context):
