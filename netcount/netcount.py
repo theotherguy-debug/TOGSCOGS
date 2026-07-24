@@ -875,6 +875,139 @@ class NetCount(commands.Cog):
         
         await ctx.send(f"✅ **PARDON GRANTED:** {member.mention} has been released from shaming containment and survivor exile.")
 
+    @counting.command(name="recount", aliases=["catchup", "resync"])
+    async def recount(self, ctx: commands.Context, channel: Optional[discord.TextChannel] = None):
+        """Force the bot to scan history and recount/catchup messages in the channel."""
+        target_channel = channel or ctx.channel
+        guild = ctx.guild
+        ch_str = str(target_channel.id)
+        
+        channels = await self.config.guild(guild).channels()
+        if ch_str not in channels:
+            return await ctx.send(f"⚠️ {target_channel.mention} is not an active sequence channel.")
+            
+        await ctx.send(f"🔄 **RECOUNT INITIATED:** Scanning last 100 messages in {target_channel.mention}...")
+        
+        ch_data = channels[ch_str]
+        try:
+            history = [msg async for msg in target_channel.history(limit=100, oldest_first=False)]
+        except Exception as e:
+            return await ctx.send(f"❌ Failed to read channel history: {str(e)}")
+            
+        if not history:
+            return await ctx.send("⚠️ No messages found in history.")
+            
+        history.reverse()
+        
+        current_count = ch_data.get("current_count", 0)
+        last_counter_id = ch_data.get("last_counter_id")
+        survivor_channels = await self.config.guild(guild).survivor_channels()
+        is_survivor = ch_str in survivor_channels
+        
+        updated_count = current_count
+        updated_last_counter = last_counter_id
+        failed = False
+        fail_msg = None
+        fail_reason = None
+        
+        for msg in history:
+            if msg.author.bot:
+                continue
+                
+            words = msg.content.split()
+            if not words:
+                continue
+                
+            parsed = evaluate_math(words[0])
+            if parsed is None:
+                continue
+                
+            if parsed <= updated_count:
+                continue
+            elif parsed == updated_count + 1:
+                if msg.author.id == updated_last_counter:
+                    failed = True
+                    fail_msg = msg
+                    fail_reason = random.choice(self.DOUBLE_COUNT_REASONS)
+                    break
+                updated_count = parsed
+                updated_last_counter = msg.author.id
+                
+                await self.safe_react(msg, "<:approved:1525751752987508737>", "✅")
+                if int(updated_count) % 100 == 0:
+                    await self.safe_react(msg, "<a:text_gif_oof61:1515093296710422640>", "💯")
+                    
+                member_highest = await self.config.member(msg.author).highest_progression()
+                if updated_count > member_highest:
+                    await self.config.member(msg.author).highest_progression.set(int(updated_count))
+                    
+                if is_survivor:
+                    streak_id = ch_data.get("streak_id")
+                    if streak_id:
+                        user_streak_id = await self.config.member(msg.author).last_counted_streak_id()
+                        if user_streak_id == streak_id:
+                            contrib = await self.config.member(msg.author).survivor_contributions()
+                            await self.config.member(msg.author).survivor_contributions.set(contrib + 1)
+                        else:
+                            await self.config.member(msg.author).last_counted_streak_id.set(streak_id)
+                            await self.config.member(msg.author).survivor_contributions.set(1)
+                        
+                        contributors = ch_data.setdefault("contributors", [])
+                        if msg.author.id not in contributors:
+                            contributors.append(msg.author.id)
+            else:
+                failed = True
+                fail_msg = msg
+                display_count = int(parsed) if parsed.is_integer() else parsed
+                template = random.choice(self.WRONG_NUMBER_TEMPLATES)
+                fail_reason = template.format(expected=int(updated_count + 1), got=display_count)
+                break
+                
+        if failed:
+            async with self.config.guild(guild).channels() as active_channels:
+                ch_data["current_count"] = 0
+                ch_data["last_counter_id"] = None
+                if is_survivor:
+                    ch_data["streak_id"] = str(random.randint(100000, 999999))
+                    ch_data["contributors"] = []
+                active_channels[ch_str] = ch_data
+                
+            if is_survivor:
+                await self.apply_survivor_penalty(fail_msg.author, guild, int(updated_count), fail_reason, target_channel)
+            else:
+                await self.apply_penalty(fail_msg.author, guild)
+                
+                duration = await self.config.guild(guild).penalty_duration_hours()
+                penalty_name = await self.config.guild(guild).penalty_name()
+                template = random.choice(self.GAME_OVER_TEMPLATES)
+                description_text = template.format(
+                    member=fail_msg.author.mention,
+                    streak=int(updated_count),
+                    channel=target_channel.mention,
+                    reason=fail_reason,
+                    penalty_name=penalty_name,
+                    duration=duration
+                )
+                
+                embed = discord.Embed(
+                    title="<:NoNo:1525751848362049676> RETROACTIVE GAME OVER! <:NoNo:1525751848362049676>",
+                    description=f"An error occurred or was caught during recount:\n\n{description_text}",
+                    color=discord.Color.red()
+                )
+                await target_channel.send(embed=embed)
+        else:
+            if updated_count > current_count:
+                async with self.config.guild(guild).channels() as active_channels:
+                    active_channels[ch_str]["current_count"] = int(updated_count)
+                    active_channels[ch_str]["last_counter_id"] = updated_last_counter
+                    if updated_count > active_channels[ch_str].get("high_score", 0):
+                        active_channels[ch_str]["high_score"] = int(updated_count)
+                
+                diff = int(updated_count - current_count)
+                await ctx.send(f"✅ **RECOUNT COMPLETE:** Caught up **{diff}** counts. Current Index is now **{int(updated_count)}**.")
+            else:
+                await ctx.send("ℹ️ **RECOUNT COMPLETE:** Database count is already fully synchronized with channel history. No new counts detected.")
+
     # --- LEADERBOARD & USER COMMANDS ---
     @commands.hybrid_command(name="countlb", aliases=["clb", "scoreboard"])
     async def countlb(self, ctx: commands.Context):
